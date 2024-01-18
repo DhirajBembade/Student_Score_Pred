@@ -1,3 +1,8 @@
+'''Data ingestion -
+It is the process of importing large, assorted data files from multiple sources
+into a single, cloud-based storage medium—a data warehouse, data mart or database—
+where it can be accessed and analyzed.'''
+
 import os
 import sys
 from src.exception import CustomException
@@ -6,6 +11,12 @@ import pandas as pd
 
 from sklearn.model_selection import train_test_split
 from dataclasses import dataclass
+
+from src.components.data_transformation import DataTransformation
+from src.components.data_transformation import DataTransformationConfig
+
+#from src.components.model_trainer import ModelTrainerConfig
+#from src.components.model_trainer import ModelTrainer
 
 @dataclass
 class DataIngestionConfig:
@@ -24,13 +35,16 @@ class DataIngestion:
             df = pd.read_csv("/Users/dhiraj-mac/Work/mlproject/notebook/data/stud.csv") # We can read from api/mangodb etc 
             logging.info("Read the dataset as dataframe")
 
+            # Create directories if they don't exist
             os.makedirs(os.path.dirname(self.ingestion_config.train_data_path),exist_ok=True)
 
+            # Save the raw dataset
             df.to_csv(self.ingestion_config.raw_data_path, index=False,header=True)
 
             logging.info("Train-test Split initiated")
             train_set,test_set = train_test_split(df, test_size=0.2 , random_state=42)
 
+            # Save the training and testing datasets
             train_set.to_csv(self.ingestion_config.train_data_path, index=False,header=True)
 
             test_set.to_csv(self.ingestion_config.test_data_path, index=False,header=True)
@@ -47,4 +61,10 @@ class DataIngestion:
 
 if __name__ == "__main__":
     obj=DataIngestion()
-    obj.initiate_data_ingestion()
+    train_data,test_data=obj.initiate_data_ingestion()
+
+    data_transformation=DataTransformation()
+    data_transformation.initiate_data_transformation(train_data,test_data)
+
+    #modeltrainer=ModelTrainer()
+    #print(modeltrainer.initiate_model_trainer(train_arr,test_arr))
